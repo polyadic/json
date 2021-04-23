@@ -17,7 +17,7 @@ namespace Polyadic.Json.Test.NewType
         [InlineData(typeof(ValueTypeNewTypeWithNoConstructors))]
         public void GetConverter_NewTypeWithNoSuitableConstructor_ThrowsException(Type typeToConvert)
         {
-            var options = new JsonSerializerOptions().AddNewTypeConverter();
+            var options = new JsonSerializerOptions { Converters = { new JsonNewTypeJsonConverterFactory() } };
             Assert.Throws<JsonException>(() => options.GetConverter(typeToConvert));
         }
 
@@ -25,32 +25,28 @@ namespace Polyadic.Json.Test.NewType
         [MemberData(nameof(DeserializesNewTypesWithSuitableConstructorsData))]
         public void Deserialize_NewTypesWithSuitableConstructors_ReturnsExpectedValue(string json, object expectedValue)
         {
-            var options = new JsonSerializerOptions().AddNewTypeConverter();
-            var value = JsonSerializer.Deserialize(json, expectedValue.GetType(), options);
+            var value = JsonSerializer.Deserialize(json, expectedValue.GetType());
             Assert.Equal(expectedValue, value);
         }
 
         [Fact]
         public void Deserialize_Null_ReturnsNullNewType()
         {
-            var options = new JsonSerializerOptions().AddNewTypeConverter();
-            var value = JsonSerializer.Deserialize<GenericNewType<string>>("null", options);
+            var value = JsonSerializer.Deserialize<GenericNewType<string>>("null");
             Assert.Null(value);
         }
 
         [Fact]
         public void Serialize_NullNewType_ReturnsNull()
         {
-            var options = new JsonSerializerOptions().AddNewTypeConverter();
-            var value = JsonSerializer.Serialize<GenericNewType<string>?>(null, options);
+            var value = JsonSerializer.Serialize<GenericNewType<string>?>(null);
             Assert.Equal("null", value);
         }
 
         [Fact]
         public void Serialize_NullInnerValue_ReturnsNull()
         {
-            var options = new JsonSerializerOptions().AddNewTypeConverter();
-            var value = JsonSerializer.Serialize(new GenericNewType<string?>(null), options);
+            var value = JsonSerializer.Serialize(new GenericNewType<string?>(null));
             Assert.Equal("null", value);
         }
 
@@ -58,8 +54,7 @@ namespace Polyadic.Json.Test.NewType
         [MemberData(nameof(DeserializesNewTypesWithSuitableConstructorsData))]
         public void Serialize_NewTypesWithSuitableConstructors_ReturnsExpectedValue(string expectedJson, object value)
         {
-            var options = new JsonSerializerOptions().AddNewTypeConverter();
-            var json = JsonSerializer.Serialize(value, options);
+            var json = JsonSerializer.Serialize(value);
             Assert.Equal(expectedJson, json);
         }
 
