@@ -22,7 +22,7 @@ namespace Polyadic.Json.NewType
         private static NewTypeMetadata GetMetadata(Type typeToConvert, JsonSerializerOptions options)
         {
             var constructor = FindConstructor(typeToConvert);
-            var innerType = constructor.GetParameters()[0].ParameterType;
+            var innerType = constructor.GetParameters().First().ParameterType;
             var converter = options.GetConverter(innerType);
             var valueProperty = FindValueProperty(typeToConvert, innerType);
             return new NewTypeMetadata(innerType, converter, constructor, valueProperty);
@@ -37,8 +37,8 @@ namespace Polyadic.Json.NewType
                 (0, 0) => throw new JsonException($"No suitable constructors found for type '{typeToConvert}'. There must be at least one constructor with one parameter"),
                 (>1, _) => throw new JsonException($"Multiple constructors of type '{typeToConvert}' are marked with [JsonConstructor]"),
                 (0, >1) => throw new JsonException($"Multiple suitable constructors found for type '{typeToConvert}'. Choose one with [JsonConstructor]"),
-                (1, _) => markedConstructors[0],
-                (_, 1) => constructorCandidates[0],
+                (1, _) => markedConstructors.First(),
+                (_, 1) => constructorCandidates.First(),
                 _ => throw new InvalidOperationException(),
             };
         }
@@ -52,8 +52,8 @@ namespace Polyadic.Json.NewType
                 (0, 0) => throw new JsonException($"No suitable value property found for type '{typeToConvert}'. There must be at least one property"),
                 (>1, _) => throw new JsonException($"Multiple properties of type '{typeToConvert}' are marked with [JsonNewTypeValueProperty]"),
                 (0, >1) => throw new JsonException($"Multiple properties found for type '{typeToConvert}'. Choose one with [JsonNewTypeValueProperty]"),
-                (1, _) => markedProperties[0],
-                (_, 1) => propertyCandidates[0],
+                (1, _) => markedProperties.First(),
+                (_, 1) => propertyCandidates.First(),
                 _ => throw new InvalidOperationException(),
             };
         }
