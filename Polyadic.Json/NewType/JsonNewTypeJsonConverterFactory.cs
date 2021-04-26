@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
@@ -30,8 +31,8 @@ namespace Polyadic.Json.NewType
 
         private static ConstructorInfo FindConstructor(Type typeToConvert)
         {
-            var constructorCandidates = typeToConvert.GetConstructors().Where(IsUnary).ToImmutableArray();
-            var markedConstructors = constructorCandidates.Where(IsMarkedAsJsonConstructor).ToImmutableArray();
+            var constructorCandidates = GetConstructorCandidates(typeToConvert).ToImmutableArray();
+            var markedConstructors = GetMarkedConstructors(constructorCandidates).ToImmutableArray();
             return (markedConstructors.Length, constructorCandidates.Length) switch
             {
                 (0, 0) => throw new JsonException($"No suitable constructors found for type '{typeToConvert}'. There must be at least one constructor with one parameter"),
@@ -45,8 +46,8 @@ namespace Polyadic.Json.NewType
 
         private static PropertyInfo FindValueProperty(Type typeToConvert, Type innerType)
         {
-            var propertyCandidates = typeToConvert.GetProperties().Where(p => p.PropertyType == innerType).ToImmutableArray();
-            var markedProperties = propertyCandidates.Where(IsMarkedAsJsonNewTypeValue).ToImmutableArray();
+            var propertyCandidates = GetPropertyCandidates(typeToConvert, innerType).ToImmutableArray();
+            var markedProperties = GetMarkedProperties(propertyCandidates).ToImmutableArray();
             return (markedProperties.Length, propertyCandidates.Length) switch
             {
                 (0, 0) => throw new JsonException($"No suitable value property found for type '{typeToConvert}'. There must be at least one property"),
@@ -57,6 +58,18 @@ namespace Polyadic.Json.NewType
                 _ => throw new InvalidOperationException(),
             };
         }
+
+        private static IEnumerable<ConstructorInfo> GetConstructorCandidates(Type typeToConvert)
+            => typeToConvert.GetConstructors().Where(IsUnary);
+
+        private static IEnumerable<ConstructorInfo> GetMarkedConstructors(IEnumerable<ConstructorInfo> constructors)
+            => constructors.Where(IsMarkedAsJsonConstructor);
+
+        private static IEnumerable<PropertyInfo> GetPropertyCandidates(Type typeToConvert, Type innerType)
+            => typeToConvert.GetProperties().Where(p => p.PropertyType == innerType);
+
+        private static IEnumerable<PropertyInfo> GetMarkedProperties(IEnumerable<PropertyInfo> properties)
+            => properties.Where(IsMarkedAsJsonNewTypeValue);
 
         private static bool IsMarkedAsJsonNewTypeValue(PropertyInfo property) => Attribute.IsDefined(property, typeof(JsonNewTypeValueAttribute));
 
