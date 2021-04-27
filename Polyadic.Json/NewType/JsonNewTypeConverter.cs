@@ -20,14 +20,9 @@ namespace Polyadic.Json.NewType
         }
 
         public override TNewType? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            var innerValue = _innerConverter is { } converter
-                ? converter.Read(ref reader, typeof(TInner), options)
-                : JsonSerializer.Deserialize<TInner>(ref reader, options);
-            return innerValue is { }
-                ? _constructor(innerValue)
+            => ReadInnerValue(ref reader, options) is { } value
+                ? _constructor(value)
                 : default;
-        }
 
         public override void Write(Utf8JsonWriter writer, TNewType value, JsonSerializerOptions options)
         {
@@ -40,6 +35,11 @@ namespace Polyadic.Json.NewType
                 JsonSerializer.Serialize(writer, _valueAccessor(value), options);
             }
         }
+
+        private TInner? ReadInnerValue(ref Utf8JsonReader reader, JsonSerializerOptions options)
+            => _innerConverter is { } converter
+                ? converter.Read(ref reader, typeof(TInner), options)
+                : JsonSerializer.Deserialize<TInner>(ref reader, options);
 
         private static Func<TInner, TNewType> CompileConstructor(NewTypeMetadata metadata)
         {
