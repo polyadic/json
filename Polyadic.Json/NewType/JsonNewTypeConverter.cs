@@ -14,8 +14,8 @@ namespace Polyadic.Json.NewType
 
         public JsonNewTypeConverter(NewTypeMetadata metadata)
         {
-            _constructor = Lazy(() => CompileConstructor(metadata));
-            _valueAccessor = Lazy(() => CompileValueAccessor(metadata));
+            _constructor = CompileFunctionLazily(() => CompileConstructor(metadata));
+            _valueAccessor = CompileFunctionLazily(() => CompileValueAccessor(metadata));
             _innerConverter = metadata.InnerConverter as JsonConverter<TInner>;
         }
 
@@ -59,9 +59,9 @@ namespace Polyadic.Json.NewType
             return expression.Compile();
         }
 
-        private static Func<T1, TResult> Lazy<T1, TResult>(Func<Func<T1, TResult>> compileFunc)
+        private static Func<TValue, TResult> CompileFunctionLazily<TValue, TResult>(Func<Func<TValue, TResult>> compileFunc)
         {
-            var lazy = new Lazy<Func<T1, TResult>>(compileFunc);
+            var lazy = new Lazy<Func<TValue, TResult>>(compileFunc);
             return inner => lazy.Value(inner);
         }
     }
