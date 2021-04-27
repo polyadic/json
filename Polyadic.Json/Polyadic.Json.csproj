@@ -4,4 +4,7 @@
         <RootNamespace>Polyadic.Json</RootNamespace>
         <Nullable>enable</Nullable>
     </PropertyGroup>
+    <ItemGroup>
+        <InternalsVisibleTo Include="Polyadic.Json.Test" />
+    </ItemGroup>
 </Project>
